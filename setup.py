@@ -63,9 +63,12 @@ except:
 if not run_command("sudo pip3 install --break-system-packages opencv-contrib-python==3.4.11.45"):
     run_command("sudo pip3 install --break-system-packages -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple opencv-contrib-python==3.4.11.45")
 
+# Install required dependencies for numpy
+run_command("sudo apt-get install -y gfortran libopenblas-dev liblapack-dev")
+
 # Uninstall and reinstall numpy
 if run_command("sudo pip3 uninstall -y numpy"):
-    if not run_command("sudo pip3 install --break-system-packages numpy==1.21"):
+    if not run_command("sudo pip3 install --break-system-packages numpy==1.21 --only-binary=:all:"):
         run_command("sudo pip3 install --break-system-packages -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple numpy==1.21")
 
 run_command("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev")
