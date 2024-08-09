@@ -93,4 +93,4 @@ replace_num('/etc/rc.local','exit 0','cd '+thisPath+' && sudo python3 webServer.
 print('Completed!')
 
 # Reboot the system
-os.system("sudo reboot")
+# os.system("sudo reboot")
