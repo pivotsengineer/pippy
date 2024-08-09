@@ -20,57 +20,65 @@ def replace_num(file,initial,new_num):
     with open(file,"w") as f:
         f.writelines(newline)
 
-for x in range(1,4):
-	if os.system("sudo apt update") == 0:
-		break
+def run_command(command, retries=3):
+    for _ in range(retries):
+        if os.system(command) == 0:
+            return True
+    return False
 
-for x in range(1,4):
-	if os.system("sudo apt -y dist-upgrade") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt clean") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt-get install -y python3-dev python3-pip libfreetype6-dev libjpeg-dev build-essential") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt-get install -y python3-flask python3-flask-cors python3-websockets") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt-get install -y python3-opencv python3-numpy python3-imutils python3-zmq python3-psutil") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt-get install -y python3-smbus i2c-tools") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt-get install -y libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt-get install -y python3-pi-ina219") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("sudo apt-get install -y util-linux procps hostapd iproute2 iw haveged dnsmasq") == 0:
-		break
-
-for x in range(1,4):
-	if os.system("cd " + thisPath + " && cd .. && sudo git clone https://github.com/oblique/create_ap") == 0:
-		break
+if run_command("sudo apt update"):
+    run_command("sudo apt -y dist-upgrade")
+    run_command("sudo apt clean")
+    run_command("sudo pip3 install -U pip")
+    run_command("sudo apt-get install -y python-dev python3-pip libfreetype6-dev libjpeg-dev build-essential")
+    run_command("sudo -H pip3 install --upgrade luma.oled")
+    run_command("sudo apt-get install -y i2c-tools")
+    run_command("sudo apt-get install -y python3-smbus")
+    run_command("sudo pip3 install icm20948")
+    run_command("sudo pip3 install flask")
+    run_command("sudo pip3 install flask_cors")
+    run_command("sudo pip3 install websockets")
 
 try:
-	os.system("cd " + thisPath + " && cd .. && cd create_ap && sudo make install")
+    replace_num("/boot/config.txt",'#dtparam=i2c_arm=on','dtparam=i2c_arm=on')
 except:
-	pass
+    print('Failed to update /boot/config.txt for i2c_arm=on')
 
-replace_num('/etc/rc.local','exit 0','cd '+thisPath+' && sudo python3 webServer.py &\nexit 0')
+try:
+    replace_num("/boot/config.txt",'[all]','[all]\ngpu_mem=128')
+except:
+    print('Failed to update /boot/config.txt for gpu_mem=128')
+
+try:
+    replace_num("/boot/config.txt",'camera_auto_detect=1','#camera_auto_detect=1\nstart_x=1')
+except:
+    print('Failed to update /boot/config.txt for camera_auto_detect=1')
+
+try:
+    replace_num("/boot/config.txt",'camera_auto_detect=1','#camera_auto_detect=1')
+except:
+    print('Failed to update /boot/config.txt for camera_auto_detect=1')
+
+# Install OpenCV
+if not run_command("sudo pip3 install opencv-contrib-python==3.4.11.45"):
+    run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple opencv-contrib-python==3.4.11.45")
+
+# Uninstall and reinstall numpy
+if run_command("sudo pip3 uninstall -y numpy"):
+    if not run_command("sudo pip3 install numpy==1.21"):
+        run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple numpy==1.21")
+
+run_command("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev")
+if not run_command("sudo pip3 install imutils zmq pybase64 psutil"):
+    run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple imutils zmq pybase64 psutil")
+
+run_command("sudo apt-get install -y util-linux procps hostapd iproute2 iw haveged dnsmasq")
+run_command("sudo pip3 install pi-ina219")
+
+if run_command(f"cd {thisPath} && cd .. && sudo git clone https://github.com/oblique/create_ap"):
+    run_command(f"cd {thisPath} && cd .. && cd create_ap && sudo make install")
+
+replace_num('/etc/rc.local','exit 0',f'cd {thisPath} && sudo python3 webServer.py &\nexit 0')
 
 print('Completed!')
-
 os.system("sudo reboot")
