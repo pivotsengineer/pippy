@@ -74,8 +74,8 @@ if not run_command("sudo pip3 install numpy==1.21 --only-binary=:all: --break-sy
     if not run_command("sudo pip3 install numpy==1.21 --break-system-packages"):
         run_command("sudo apt-get install -y python3-numpy")
 
-# Install additional libraries
-run_command("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev")
+# Install additional libraries (excluding libjasper-dev)
+run_command("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev")
 if not run_command("sudo pip3 install imutils zmq pybase64 psutil --break-system-packages"):
     run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple imutils zmq pybase64 psutil --break-system-packages")
 
@@ -93,4 +93,4 @@ replace_num('/etc/rc.local','exit 0','cd '+thisPath+' && sudo python3 webServer.
 print('Completed!')
 
 # Reboot the system
-# os.system("sudo reboot")
+os.system("sudo reboot")
