@@ -26,63 +26,71 @@ def run_command(command, retries=3):
             return True
     return False
 
-if run_command("sudo apt update"):
-    run_command("sudo apt -y dist-upgrade")
-    run_command("sudo apt clean")
-    run_command("sudo pip3 install --break-system-packages -U pip")
-    run_command("sudo apt-get install -y python-dev python3-pip libfreetype6-dev libjpeg-dev build-essential")
-    run_command("sudo -H pip3 install --break-system-packages --upgrade luma.oled")
-    run_command("sudo apt-get install -y i2c-tools")
-    run_command("sudo apt-get install -y python3-smbus")
-    run_command("sudo pip3 install --break-system-packages icm20948")
-    run_command("sudo pip3 install --break-system-packages flask")
-    run_command("sudo pip3 install --break-system-packages flask_cors")
-    run_command("sudo pip3 install --break-system-packages websockets")
+# Update and upgrade system packages
+run_command("sudo apt update")
+run_command("sudo apt -y dist-upgrade")
+run_command("sudo apt clean")
 
+# Upgrade pip
+run_command("sudo pip3 install -U pip --break-system-packages")
+
+# Install necessary packages
+run_command("sudo apt-get install -y python-dev python3-pip libfreetype6-dev libjpeg-dev build-essential")
+run_command("sudo -H pip3 install --upgrade luma.oled --break-system-packages")
+run_command("sudo apt-get install -y i2c-tools")
+run_command("sudo apt-get install -y python3-smbus")
+run_command("sudo pip3 install icm20948 --break-system-packages")
+run_command("sudo pip3 install flask --break-system-packages")
+run_command("sudo pip3 install flask_cors --break-system-packages")
+run_command("sudo pip3 install websockets --break-system-packages")
+
+# Configure system settings
 try:
     replace_num("/boot/config.txt",'#dtparam=i2c_arm=on','dtparam=i2c_arm=on')
 except:
-    print('Failed to update /boot/config.txt for i2c_arm=on')
+    print('Failed to modify /boot/config.txt for I2C')
 
 try:
     replace_num("/boot/config.txt",'[all]','[all]\ngpu_mem=128')
 except:
-    print('Failed to update /boot/config.txt for gpu_mem=128')
+    print('Failed to modify /boot/config.txt for GPU memory')
 
 try:
     replace_num("/boot/config.txt",'camera_auto_detect=1','#camera_auto_detect=1\nstart_x=1')
 except:
-    print('Failed to update /boot/config.txt for camera_auto_detect=1')
+    print('Failed to modify /boot/config.txt for camera settings')
 
-try:
-    replace_num("/boot/config.txt",'camera_auto_detect=1','#camera_auto_detect=1')
-except:
-    print('Failed to update /boot/config.txt for camera_auto_detect=1')
+# Install OpenCV with retries
+if not run_command("sudo pip3 install opencv-contrib-python==3.4.11.45 --break-system-packages"):
+    run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple opencv-contrib-python==3.4.11.45 --break-system-packages")
 
-# Install OpenCV
-if not run_command("sudo pip3 install --break-system-packages opencv-contrib-python==3.4.11.45"):
-    run_command("sudo pip3 install --break-system-packages -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple opencv-contrib-python==3.4.11.45")
-
-# Install required dependencies for numpy
+# Install numpy dependencies
 run_command("sudo apt-get install -y gfortran libopenblas-dev liblapack-dev")
 
-# Uninstall and reinstall numpy
-if run_command("sudo pip3 uninstall -y numpy"):
-    if not run_command("sudo pip3 install --break-system-packages numpy==1.21 --only-binary=:all:"):
-        run_command("sudo pip3 install --break-system-packages -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple numpy==1.21")
+# Uninstall and reinstall numpy with retries
+run_command("sudo pip3 uninstall -y numpy --break-system-packages")
+if not run_command("sudo pip3 install numpy==1.21 --only-binary=:all: --break-system-packages"):
+    # Fallback to source installation if binary fails
+    if not run_command("sudo pip3 install numpy==1.21 --break-system-packages"):
+        run_command("sudo apt-get install -y python3-numpy")
 
+# Install additional libraries
 run_command("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev")
-if not run_command("sudo pip3 install --break-system-packages imutils zmq pybase64 psutil"):
-    run_command("sudo pip3 install --break-system-packages -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple imutils zmq pybase64 psutil")
+if not run_command("sudo pip3 install imutils zmq pybase64 psutil --break-system-packages"):
+    run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple imutils zmq pybase64 psutil --break-system-packages")
 
 run_command("sudo apt-get install -y util-linux procps hostapd iproute2 iw haveged dnsmasq")
-run_command("sudo pip3 install --break-system-packages pi-ina219")
+run_command("sudo pip3 install pi-ina219 --break-system-packages")
 
-if not os.path.exists(os.path.join(thisPath, '..', 'create_ap')):
-    if run_command(f"cd {thisPath} && cd .. && sudo git clone https://github.com/oblique/create_ap"):
-        run_command(f"cd {thisPath} && cd .. && cd create_ap && sudo make install")
+# Clone and install create_ap if not already present
+if not os.path.exists(os.path.join(thisPath, "../create_ap")):
+    run_command("cd " + thisPath + " && cd .. && sudo git clone https://github.com/oblique/create_ap")
+    run_command("cd " + thisPath + " && cd .. && cd create_ap && sudo make install")
 
-replace_num('/etc/rc.local','exit 0',f'cd {thisPath} && sudo python3 webServer.py &\nexit 0')
+# Modify rc.local to start the web server on boot
+replace_num('/etc/rc.local','exit 0','cd '+thisPath+' && sudo python3 webServer.py &\nexit 0')
 
 print('Completed!')
+
+# Reboot the system
 os.system("sudo reboot")
