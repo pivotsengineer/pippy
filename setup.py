@@ -29,15 +29,15 @@ def run_command(command, retries=3):
 if run_command("sudo apt update"):
     run_command("sudo apt -y dist-upgrade")
     run_command("sudo apt clean")
-    run_command("sudo pip3 install -U pip")
+    run_command("sudo pip3 install --break-system-packages -U pip")
     run_command("sudo apt-get install -y python-dev python3-pip libfreetype6-dev libjpeg-dev build-essential")
-    run_command("sudo -H pip3 install --upgrade luma.oled")
+    run_command("sudo -H pip3 install --break-system-packages --upgrade luma.oled")
     run_command("sudo apt-get install -y i2c-tools")
     run_command("sudo apt-get install -y python3-smbus")
-    run_command("sudo pip3 install icm20948")
-    run_command("sudo pip3 install flask")
-    run_command("sudo pip3 install flask_cors")
-    run_command("sudo pip3 install websockets")
+    run_command("sudo pip3 install --break-system-packages icm20948")
+    run_command("sudo pip3 install --break-system-packages flask")
+    run_command("sudo pip3 install --break-system-packages flask_cors")
+    run_command("sudo pip3 install --break-system-packages websockets")
 
 try:
     replace_num("/boot/config.txt",'#dtparam=i2c_arm=on','dtparam=i2c_arm=on')
@@ -60,23 +60,24 @@ except:
     print('Failed to update /boot/config.txt for camera_auto_detect=1')
 
 # Install OpenCV
-if not run_command("sudo pip3 install opencv-contrib-python==3.4.11.45"):
-    run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple opencv-contrib-python==3.4.11.45")
+if not run_command("sudo pip3 install --break-system-packages opencv-contrib-python==3.4.11.45"):
+    run_command("sudo pip3 install --break-system-packages -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple opencv-contrib-python==3.4.11.45")
 
 # Uninstall and reinstall numpy
 if run_command("sudo pip3 uninstall -y numpy"):
-    if not run_command("sudo pip3 install numpy==1.21"):
-        run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple numpy==1.21")
+    if not run_command("sudo pip3 install --break-system-packages numpy==1.21"):
+        run_command("sudo pip3 install --break-system-packages -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple numpy==1.21")
 
 run_command("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev")
-if not run_command("sudo pip3 install imutils zmq pybase64 psutil"):
-    run_command("sudo pip3 install -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple imutils zmq pybase64 psutil")
+if not run_command("sudo pip3 install --break-system-packages imutils zmq pybase64 psutil"):
+    run_command("sudo pip3 install --break-system-packages -i http://pypi.douban.com/simple/ --trusted-host=pypi.douban.com/simple imutils zmq pybase64 psutil")
 
 run_command("sudo apt-get install -y util-linux procps hostapd iproute2 iw haveged dnsmasq")
-run_command("sudo pip3 install pi-ina219")
+run_command("sudo pip3 install --break-system-packages pi-ina219")
 
-if run_command(f"cd {thisPath} && cd .. && sudo git clone https://github.com/oblique/create_ap"):
-    run_command(f"cd {thisPath} && cd .. && cd create_ap && sudo make install")
+if not os.path.exists(os.path.join(thisPath, '..', 'create_ap')):
+    if run_command(f"cd {thisPath} && cd .. && sudo git clone https://github.com/oblique/create_ap"):
+        run_command(f"cd {thisPath} && cd .. && cd create_ap && sudo make install")
 
 replace_num('/etc/rc.local','exit 0',f'cd {thisPath} && sudo python3 webServer.py &\nexit 0')
 
