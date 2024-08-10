@@ -28,11 +28,11 @@ run_command("sudo pip3 install -U pip --break-system-packages")
 run_command("sudo apt-get install -y python3-dev python3-pip build-essential gfortran libopenblas-dev liblapack-dev libatlas-base-dev")
 
 # Install numpy using pre-built binary wheels, avoiding source builds
-run_command("sudo pip3 install numpy==1.22.4 --only-binary=:all: --break-system-packages")
+# run_command("sudo pip3 install numpy==1.22.4 --only-binary=:all: --break-system-packages")
 
 # Install additional dependencies
 run_command("sudo apt-get install -y i2c-tools python3-smbus libfreetype6-dev libjpeg-dev")
-run_command("sudo pip3 install opencv-contrib-python==3.4.11.45 --break-system-packages")
+run_command("sudo pip3 install opencv-python --break-system-packages") #opencv-contrib-python==3.4.11.45
 run_command("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev util-linux procps hostapd iproute2 iw haveged dnsmasq")
 run_command("sudo pip3 install pi-ina219 imutils zmq pybase64 psutil --break-system-packages")
 
