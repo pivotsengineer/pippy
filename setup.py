@@ -31,7 +31,7 @@ commands = [
     "sudo apt update",
     "sudo apt -y dist-upgrade",
     "sudo apt clean",
-    "sudo pip3 install -U pip",
+    "sudo pip3 install --break-system-packages -U pip",
     "sudo apt-get install -y python-dev python3-pip libfreetype6-dev libjpeg-dev build-essential",
     "sudo -H pip3 install --break-system-packages --upgrade luma.oled",
     "sudo apt-get install -y i2c-tools",
@@ -62,7 +62,7 @@ for file, initial, new_num in config_modifications:
 # Install specific packages
 package_commands = [
     "sudo pip3 install --break-system-packages opencv-contrib-python==3.4.11.45",
-    "sudo pip3 uninstall -y numpy",
+    "sudo pip3 uninstall --break-system-packages -y numpy",
     "sudo pip3 install --break-system-packages numpy==1.21",
     "sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev",
     "sudo pip3 install --break-system-packages imutils zmq pybase64 psutil",
