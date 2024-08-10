@@ -44,4 +44,4 @@ if not os.path.exists(os.path.join(os.path.dirname(__file__), "../create_ap")):
 replace_num('/etc/rc.local', 'exit 0', 'cd ' + os.path.dirname(__file__) + ' && sudo python3 webServer.py &\nexit 0')
 
 # Reboot the system after installation
-os.system("sudo reboot")
+# os.system("sudo reboot")
