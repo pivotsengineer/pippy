@@ -1,47 +1,89 @@
 #!/usr/bin/python3
+# File name   : setup.py for PIPPY
+# Date        : 2020/11/24
 
 import os
 
 def replace_num(file, initial, new_num):
+    """Replace a specific line in a file with a new line."""
     newline = ""
-    str_num = str(new_num)
     with open(file, "r") as f:
         for line in f.readlines():
-            if line.find(initial) == 0:
-                line = (str_num + '\n')
+            if line.startswith(initial):
+                line = f"{new_num}\n"
             newline += line
     with open(file, "w") as f:
-        f.writelines(newline)
+        f.write(newline)
 
-def run_command(command, retries=3):
-    for _ in range(retries):
+def run_command(command, max_retries=3):
+    """Run a shell command with retry mechanism."""
+    for _ in range(max_retries):
         if os.system(command) == 0:
             return True
     return False
 
-run_command("sudo apt update")
-run_command("sudo apt -y dist-upgrade")
-run_command("sudo apt clean")
-run_command("sudo pip3 install -U pip --break-system-packages")
+# Paths
+curpath = os.path.realpath(__file__)
+thisPath = os.path.dirname(curpath)
 
-# Install dependencies required for building numpy
-run_command("sudo apt-get install -y python3-dev python3-pip build-essential gfortran libopenblas-dev liblapack-dev libatlas-base-dev")
+# Update system and install packages
+commands = [
+    "sudo apt update",
+    "sudo apt -y dist-upgrade",
+    "sudo apt clean",
+    "sudo pip3 install -U pip",
+    "sudo apt-get install -y python-dev python3-pip libfreetype6-dev libjpeg-dev build-essential",
+    "sudo -H pip3 install --break-system-packages --upgrade luma.oled",
+    "sudo apt-get install -y i2c-tools",
+    "sudo apt-get install -y python3-smbus",
+    "sudo pip3 install --break-system-packages icm20948",
+    "sudo pip3 install --break-system-packages flask",
+    "sudo pip3 install --break-system-packages flask_cors",
+    "sudo pip3 install --break-system-packages websockets",
+]
 
-# Install numpy using pre-built binary wheels, avoiding source builds
-# run_command("sudo pip3 install numpy==1.22.4 --only-binary=:all: --break-system-packages")
+for cmd in commands:
+    run_command(cmd)
 
-# Install additional dependencies
-run_command("sudo apt-get install -y i2c-tools python3-smbus libfreetype6-dev libjpeg-dev")
-run_command("sudo pip3 install opencv-python --break-system-packages") #opencv-contrib-python==3.4.11.45
-run_command("sudo apt-get -y install libhdf5-dev libhdf5-serial-dev util-linux procps hostapd iproute2 iw haveged dnsmasq")
-run_command("sudo pip3 install pi-ina219 imutils zmq pybase64 psutil --break-system-packages")
+# Modify /boot/config.txt
+config_modifications = [
+    ('/boot/config.txt', '#dtparam=i2c_arm=on', 'dtparam=i2c_arm=on'),
+    ('/boot/config.txt', '[all]', '[all]\ngpu_mem=128'),
+    ('/boot/config.txt', 'camera_auto_detect=1', '#camera_auto_detect=1\nstart_x=1'),
+    ('/boot/config.txt', 'camera_auto_detect=1', '#camera_auto_detect=1')
+]
 
-# Clone and install create_ap if not already installed
-if not os.path.exists(os.path.join(os.path.dirname(__file__), "../create_ap")):
-    run_command("cd .. && sudo git clone https://github.com/oblique/create_ap && cd create_ap && sudo make install")
+for file, initial, new_num in config_modifications:
+    try:
+        replace_num(file, initial, new_num)
+    except Exception as e:
+        print(f"Error modifying {file}: {e}")
 
-# Modify rc.local to start the server at boot
-replace_num('/etc/rc.local', 'exit 0', 'cd ' + os.path.dirname(__file__) + ' && sudo python3 webServer.py &\nexit 0')
+# Install specific packages
+package_commands = [
+    "sudo pip3 install --break-system-packages opencv-contrib-python==3.4.11.45",
+    "sudo pip3 uninstall -y numpy",
+    "sudo pip3 install --break-system-packages numpy==1.21",
+    "sudo apt-get -y install libhdf5-dev libhdf5-serial-dev libatlas-base-dev libjasper-dev",
+    "sudo pip3 install --break-system-packages imutils zmq pybase64 psutil",
+    "sudo apt-get install -y util-linux procps hostapd iproute2 iw haveged dnsmasq",
+    "sudo pip3 install --break-system-packages pi-ina219"
+]
 
-# Reboot the system after installation
+for cmd in package_commands:
+    run_command(cmd)
+
+# Clone and install create_ap
+if run_command(f"cd {thisPath} && cd .. && sudo git clone https://github.com/oblique/create_ap"):
+    try:
+        os.system(f"cd {thisPath} && cd .. && cd create_ap && sudo make install")
+    except Exception as e:
+        print(f"Error installing create_ap: {e}")
+
+# Update rc.local
+# replace_num('/etc/rc.local', 'exit 0', f'cd {thisPath} && sudo python3 webServer.py &\nexit 0')
+
+print('Completed!')
+
+# Reboot system
 # os.system("sudo reboot")
