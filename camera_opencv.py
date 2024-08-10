@@ -428,7 +428,7 @@ class Camera(BaseCamera):
             success, img = camera.read()  # Capture frame-by-frame
             if not success or img is None:
                 # If the frame was not captured successfully, skip encoding
-                print("Failed to capture image")
+                print("Failed to capture image. Retrying...")
                 time.sleep(0.1)  # Add a short delay before trying again
                 continue
 
