@@ -425,7 +425,7 @@ class Camera(BaseCamera):
         cvt.start()
 
         while True:
-            success, img = cvt.read()  # Capture frame-by-frame
+            success, img = camera.read()  # Capture frame-by-frame
             if not success or img is None:
                 # If the frame was not captured successfully, skip encoding
                 print("Failed to capture image")
